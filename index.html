@@ -63,4 +63,14 @@ $('csv').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{loadRows(pa
 $('apiBtn').onclick=async()=>{let base=$('api').value.trim().replace(/\/+$/,'');let sym=$('symbol').value.trim().toUpperCase();if(!base){setStatus('Enter a compatible API base URL first.');return}setStatus('Requesting historical data…');try{let res=await fetch(`${base}/stocks/${encodeURIComponent(sym)}/historical`);if(!res.ok)throw Error('API returned HTTP '+res.status);let json=await res.json();let arr=Array.isArray(json)?json:(json.data||json.results||json.history);if(!Array.isArray(arr)||!arr.length)throw Error('Unknown API response shape. Download CSV instead.');let rows=arr.map(r=>({date:String(r.date||r.datetime||r.timestamp||'').slice(0,10),open:+(r.open??r.Open),high:+(r.high??r.High),low:+(r.low??r.Low),close:+(r.close??r.Close),volume:+(r.volume??r.Volume)})).filter(r=>r.date&&[r.open,r.high,r.low,r.close,r.volume].every(Number.isFinite));if(rows.length<2)throw Error('API did not return standard OHLCV candles.');loadRows(rows,'api','API response loaded · verify vendor, timestamps, freshness and license.')}catch(err){setStatus('API unavailable: '+err.message+'. Use an authorized compatible API or import CSV.')}};
 ['capital','risk','entry','stop'].forEach(id=>$(id).addEventListener('input',calcRisk));$('backtestBtn').onclick=backtest;window.addEventListener('resize',draw);$('style').onchange=()=>{if($('style').value==='intraday')setStatus('Intraday selected. Import intraday candle CSV; daily sample data is not intraday data.');else setStatus('Swing selected. Daily OHLCV data is appropriate for this mode.')};
 $('demoBtn').click();
-</script></body></html>
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js")
+      .then(() => console.log("PSX Signal Pro offline support ready"))
+      .catch((error) => console.error("Service worker error:", error));
+  });
+}
+</script>
+</body></html>
